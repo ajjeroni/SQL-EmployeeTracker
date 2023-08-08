@@ -4,8 +4,8 @@ const inquirer = require("inquirer");
 const db = mysql.createConnection({
   host: "localhost",
   user: "root",
-  password: "password",
-  database: "employees_db",
+  password: "Mangini2023!",
+  database: "company_db",
 });
 
 function init() {
@@ -58,15 +58,44 @@ function init() {
 }
 
 function viewAllDepartments() {
+    db.query("select * from departments;", function (err, res) { 
+        console.log("Viewing Departments");
+        console.log(res);
+        init();
+    })
 }
 
 function viewAllRoles() {
+    db.query("select * from roles;", function (err, res) { 
+        console.log("Viewing roles");
+        console.log(res);
+        init();
+    })
 }
 
 function viewAllEmployees() {
+    db.query("select * from employees;", function (err, res) { 
+        console.log("Viewing employees");
+        console.log(res);
+        init();
+    })
 }
 
 function addDepartment() {
+    inquirer.prompt({
+            name: "deptquestion",
+            type: "input",
+            message: "Which department would you like to add?"
+    })
+    .then((answers) => {
+        console.log(answers.deptquestion);
+        db.query("INSERT INTO departments SET ?",
+        {name: answers.deptquestion},
+        function(err){
+            if(err) throw err;
+            init(); 
+        })
+    })
 }
 
 function addRole() {
