@@ -108,7 +108,7 @@ function viewAllEmployees() {
   });
 }
 
-  function addDepartment() {
+function addDepartment() {
   inquirer
     .prompt({
       name: "deptquestion",
@@ -140,14 +140,17 @@ async function addRole() {
       {
         name: "roleSalary",
         type: "input",
-        message: "what is the salary?"
+        message: "what is the salary?",
       },
       {
         name: "roleDepartment",
         type: "list",
         message: "What is the department?",
-        choices: departments.map((department) => ({ name: department.name_, value: department.id }))
-      }
+        choices: departments.map((department) => ({
+          name: department.name_,
+          value: department.id,
+        })),
+      },
     ])
     .then((answers) => {
       console.log(answers.roleTitle);
@@ -157,7 +160,7 @@ async function addRole() {
         {
           title: answers.roleTitle,
           salary: answers.roleSalary,
-          department_id: answers.roleDepartment
+          department_id: answers.roleDepartment,
         },
         function (err) {
           if (err) throw err;
@@ -213,24 +216,41 @@ async function addEmployee() {
 async function updateEmployeeRole() {
   const employee = await queryEmployees();
   const role = await queryRoles();
-  inquirer.prompt([
-    {
-      name: "updateEmployee",
-      type: "list",
-      message: "Which employee would you like to update?",
-      choices: employee.map((employee) => ({ name: `${employee.first_name} ${employee.last_name}`, value: employee.role_id }))
-    },
-    {
-      name: "updateRole",
-      type: "list",
-      message: "Which role would this employee have?",
-      choices: role.map((roles) => ({name: roles.title, value: roles.department_id}))
-    }
-  ])
-  .then((answers) => {
-    db.query("")
-  }
-    )
+  console.log(employee);
+  inquirer
+    .prompt([
+      {
+        name: "updateEmployee",
+        type: "list",
+        message: "Which employee would you like to update?",
+        choices: employee.map((employee) => ({
+          name: employee.first_name + " " + employee.last_name, value: employee.id,
+        })),
+      },
+      {
+        name: "updateRole",
+        type: "list",
+        message: "Which role would this employee have?",
+        choices: role.map((roles) => ({ name: roles.title, value: roles.id })),
+      },
+    ])
+    .then((answers) => {
+      db.query(
+        "UPDATE employees SET ? WHERE ?",
+        [
+          {
+            role_id: answers.updateRole,
+          },
+          {
+            id: answers.updateEmployee
+          },
+        ],
+        function (err) {
+          if (err) throw err;
+          init();
+        }
+      );
+    });
 }
 
 init();
