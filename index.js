@@ -26,6 +26,15 @@ async function queryEmployees() {
   });
 }
 
+async function queryDepartments() {
+  return new Promise((resolve, reject) => {
+    db.query("select * from departments", function (err, results) {
+      if (err) return reject(err);
+      resolve(results);
+    });
+  });
+}
+
 function init() {
   inquirer
     .prompt({
@@ -78,7 +87,7 @@ function init() {
 function viewAllDepartments() {
   db.query("select * from departments;", function (err, res) {
     console.log("Viewing Departments");
-    console.log(res);
+    console.table(res);
     init();
   });
 }
@@ -86,7 +95,7 @@ function viewAllDepartments() {
 function viewAllRoles() {
   db.query("select * from roles;", function (err, res) {
     console.log("Viewing roles");
-    console.log(res);
+    console.table(res);
     init();
   });
 }
@@ -94,12 +103,12 @@ function viewAllRoles() {
 function viewAllEmployees() {
   db.query("select * from employees;", function (err, res) {
     console.log("Viewing employees");
-    console.log(res);
+    console.table(res);
     init();
   });
 }
 
-function addDepartment() {
+  function addDepartment() {
   inquirer
     .prompt({
       name: "deptquestion",
@@ -110,7 +119,7 @@ function addDepartment() {
       console.log(answers.deptquestion);
       db.query(
         "INSERT INTO departments SET ?",
-        { name: answers.deptquestion },
+        { name_: answers.deptquestion },
         function (err) {
           if (err) throw err;
           init();
@@ -119,15 +128,47 @@ function addDepartment() {
     });
 }
 
-function addRole() {
-  
+async function addRole() {
+  const departments = await queryDepartments();
+  inquirer
+    .prompt([
+      {
+        name: "roleTitle",
+        type: "input",
+        message: "Which title would you like to add?",
+      },
+      {
+        name: "roleSalary",
+        type: "input",
+        message: "what is the salary?"
+      },
+      {
+        name: "roleDepartment",
+        type: "list",
+        message: "What is the department?",
+        choices: departments.map((department) => ({ name: department.name_, value: department.id }))
+      }
+    ])
+    .then((answers) => {
+      console.log(answers.roleTitle);
+      console.log(answers.roleDepartment);
+      db.query(
+        "INSERT INTO roles SET ?",
+        {
+          title: answers.roleTitle,
+          salary: answers.roleSalary,
+          department_id: answers.roleDepartment
+        },
+        function (err) {
+          if (err) throw err;
+          init();
+        }
+      );
+    });
 }
 
 async function addEmployee() {
   const roles = await queryRoles();
-  const employees = await queryEmployees();
-  console.log(employees)
-  console.log(roles)
   inquirer
     .prompt([
       {
@@ -169,8 +210,27 @@ async function addEmployee() {
     });
 }
 
-function updateEmployeeRole() {
-
+async function updateEmployeeRole() {
+  const employee = await queryEmployees();
+  const role = await queryRoles();
+  inquirer.prompt([
+    {
+      name: "updateEmployee",
+      type: "list",
+      message: "Which employee would you like to update?",
+      choices: employee.map((employee) => ({ name: `${employee.first_name} ${employee.last_name}`, value: employee.role_id }))
+    },
+    {
+      name: "updateRole",
+      type: "list",
+      message: "Which role would this employee have?",
+      choices: role.map((roles) => ({name: roles.title, value: roles.department_id}))
+    }
+  ])
+  .then((answers) => {
+    db.query("")
+  }
+    )
 }
 
 init();
